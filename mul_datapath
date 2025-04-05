@@ -1,0 +1,74 @@
+module mul_datapath (eqz, lda, ldb, ldp, clrp, decb, data_in, clk,y);
+    input [15:0] data_in;
+    input lda, ldb, ldp, clrp, decb, clk;
+    output eqz;
+    output [15:0] y;
+    wire [15:0] x,  z, bus, bout;
+
+    assign bus = data_in;
+
+    PIPO1 A(x, bus, lda, clk);
+    PIPO2 P(y, z, ldp, clrp, clk);
+    CNTRB B(bout, bus, ldb, decb, clk);
+    ADD AD(z, x, y);
+    CMP CP(eqz, bout);
+endmodule
+
+
+module PIPO1(dout, din, ld, clk);
+    input [15:0] din;
+    input ld, clk;
+    output reg [15:0] dout;
+
+    always @(posedge clk)
+        if (ld)
+            dout <= din;
+endmodule
+
+
+module PIPO2(dout, din, ld, clr, clk);
+    input ld, clr, clk;
+    input [15:0] din;
+    output reg [15:0] dout;
+
+    always @(posedge clk)
+        if (clr)
+            dout <= 16'b0;
+        else if (ld)
+            dout <= din;
+endmodule
+
+
+module CNTRB(dout, din, ld, dec, clk);
+    input ld, dec, clk;
+    input [15:0] din;
+    output reg [15:0] dout;
+
+    always @(posedge clk)
+        if (ld)
+            dout <= din;
+        else if (dec)
+            dout <= dout - 1;
+endmodule
+
+
+module ADD(out, in1, in2);
+    input [15:0] in1, in2;
+    output reg [15:0] out;
+
+    always @(*)
+        out = in1 + in2;
+endmodule
+
+
+module CMP(a, b);
+    output reg a;
+    input  [15:0] b;
+
+    always @(*) begin
+        if (b == 0)
+            a = 1;
+        else
+            a = 0;
+    end
+endmodule
